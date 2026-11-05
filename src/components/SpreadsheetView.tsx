@@ -1,6 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { PlanWeek, Exercise, AthleteId } from '../types/rehab';
-import { exportPlanToCsv } from '../utils/rehab-logic';
+import React, { useState, useMemo, useEffect } from 'react';
+import { PlanWeek, Exercise, AthleteId, WorkoutCompletionState } from '../types/rehab';
+import { exportPlanToCsv, exportCompletionMetricsToCsv } from '../utils/rehab-logic';
+import {
+  ARWEL_12_WEEK_PLAN,
+  HELEN_12_WEEK_PLAN,
+  COMBINED_12_WEEK_PLAN,
+} from '../data/rehabData';
 import {
   Download,
   Search,
@@ -11,20 +16,31 @@ import {
   CheckCircle,
   FileSpreadsheet,
   Youtube,
+  CheckSquare,
+  Square,
+  BarChart3,
 } from 'lucide-react';
 
 interface SpreadsheetViewProps {
   weeks: PlanWeek[];
   exercises: Exercise[];
   currentAthleteId: AthleteId;
+  athleteName?: string;
   onOpenVideo: (exercise: Exercise) => void;
+  completions?: WorkoutCompletionState;
+  onToggleWorkout?: (weekNumber: number, dayNumber: number, dayName: string, workoutTitle: string) => void;
+  onNavigateToStats?: () => void;
 }
 
 export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   weeks,
   exercises,
   currentAthleteId,
+  athleteName = 'Runner',
   onOpenVideo,
+  completions = {},
+  onToggleWorkout,
+  onNavigateToStats,
 }) => {
   const [selectedAthleteFilter, setSelectedAthleteFilter] = useState<'all' | 'arwel' | 'helen'>(
     currentAthleteId
@@ -35,9 +51,20 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
 
+  useEffect(() => {
+    setSelectedAthleteFilter(currentAthleteId);
+  }, [currentAthleteId]);
+
+  // Resolve dedicated schedule based on athlete selection
+  const activePlanWeeks = useMemo(() => {
+    if (selectedAthleteFilter === 'arwel') return ARWEL_12_WEEK_PLAN;
+    if (selectedAthleteFilter === 'helen') return HELEN_12_WEEK_PLAN;
+    return COMBINED_12_WEEK_PLAN;
+  }, [selectedAthleteFilter]);
+
   const exerciseMap = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises]);
 
-  // Flatten the full 12-week schedule into spreadsheet row objects
+  // Flatten the dedicated 12-week schedule into spreadsheet row objects
   const tableRows = useMemo(() => {
     const rows: {
       id: string;
@@ -54,7 +81,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
       isRest: boolean;
     }[] = [];
 
-    weeks.forEach((week) => {
+    activePlanWeeks.forEach((week) => {
       // Phase filter
       if (selectedPhase !== 'all' && week.phase !== selectedPhase) return;
       // Week filter
@@ -133,7 +160,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
 
     return rows;
   }, [
-    weeks,
+    activePlanWeeks,
     exerciseMap,
     selectedAthleteFilter,
     selectedPhase,
@@ -144,7 +171,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
 
   const handleExportCsv = () => {
     const target = selectedAthleteFilter === 'all' ? undefined : (selectedAthleteFilter as AthleteId);
-    const csvContent = exportPlanToCsv(weeks, exercises, target);
+    const csvContent = exportPlanToCsv(activePlanWeeks, exercises, target);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -193,29 +220,129 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
             </p>
           </div>
 
-          {/* Export Button */}
-          <div className="flex items-center gap-3">
+          {/* Export Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {onNavigateToStats && (
+              <button
+                onClick={onNavigateToStats}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 font-semibold rounded-xl text-xs transition"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>View Completion Stats</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                const csv = exportCompletionMetricsToCsv(
+                  activePlanWeeks,
+                  currentAthleteId,
+                  completions,
+                  athleteName
+                );
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const filename = `${athleteName.replace(/\s+/g, '_')}_Completion_Metrics_${timestamp}.csv`;
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setDownloadSuccess(true);
+                setTimeout(() => setDownloadSuccess(false), 4000);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg transition hover:scale-[1.02] text-xs"
+              title="Export completion status against days, weeks, and total to CSV"
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>Export Progress Metrics (.CSV)</span>
+            </button>
+
             <button
               onClick={handleExportCsv}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-950/40 transition hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl transition text-xs"
+              title="Export full exercise curriculum matrix to CSV"
             >
               {downloadSuccess ? (
                 <>
-                  <CheckCircle className="w-4 h-4 text-emerald-200" />
-                  <span>Downloaded CSV!</span>
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span>Exported!</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>Export to Spreadsheet (.CSV)</span>
+                  <span>Exercise Matrix (.CSV)</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
+        {/* Dedicated Schedule View Banner */}
+        <div className="mt-5 p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+              Active Curriculum:
+            </span>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                selectedAthleteFilter === 'arwel'
+                  ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                  : selectedAthleteFilter === 'helen'
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                  : 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+              }`}
+            >
+              {selectedAthleteFilter === 'arwel'
+                ? 'Arwel Thomas Dedicated 12-Week Plan (Adductor Strain • Facet Overload • Knee OA • ITB)'
+                : selectedAthleteFilter === 'helen'
+                ? 'Helen Shanley Dedicated 12-Week Plan (Plantar Fasciitis • GTPS Hip • Grip-Free Hand Therapy)'
+                : 'Combined Multi-Athlete Curriculum (Both Runners)'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 self-start md:self-auto">
+            <button
+              type="button"
+              onClick={() => setSelectedAthleteFilter('arwel')}
+              className={`px-2.5 py-1 rounded-lg text-xs transition font-semibold ${
+                selectedAthleteFilter === 'arwel'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              Arwel Plan
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedAthleteFilter('helen')}
+              className={`px-2.5 py-1 rounded-lg text-xs transition font-semibold ${
+                selectedAthleteFilter === 'helen'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              Helen Plan
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedAthleteFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs transition font-semibold ${
+                selectedAthleteFilter === 'all'
+                  ? 'bg-cyan-600 text-white shadow-sm'
+                  : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              Combined View
+            </button>
+          </div>
+        </div>
+
         {/* Filter Controls Row */}
-        <div className="mt-6 pt-5 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="mt-4 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Athlete Filter */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
@@ -226,9 +353,9 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
               onChange={(e) => setSelectedAthleteFilter(e.target.value as any)}
               className="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
             >
-              <option value="all">All Athletes (Arwel & Helen)</option>
-              <option value="arwel">Arwel Thomas (Adductor/Back/Knee)</option>
-              <option value="helen">Helen Shanley (Plantar/GTPS/Hands)</option>
+              <option value="arwel">Arwel Thomas Dedicated (Adductor/Back/Knee)</option>
+              <option value="helen">Helen Shanley Dedicated (Plantar/GTPS/Hands)</option>
+              <option value="all">Combined All Exercises (Arwel &amp; Helen)</option>
             </select>
           </div>
 
@@ -338,6 +465,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
           <table className="w-full text-left border-collapse text-xs">
             <thead className="sticky top-0 z-20 bg-slate-950 text-slate-300 font-semibold uppercase tracking-wider border-b border-slate-800 shadow-sm">
               <tr>
+                <th className="px-3 py-3.5 whitespace-nowrap text-center">Done</th>
                 <th className="px-4 py-3.5 whitespace-nowrap">Week / Phase</th>
                 <th className="px-3 py-3.5 whitespace-nowrap">Day</th>
                 <th className="px-4 py-3.5 whitespace-nowrap">Workout Session</th>
@@ -354,16 +482,20 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
             <tbody className="divide-y divide-slate-800/80 font-normal text-slate-300">
               {tableRows.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-500">
+                  <td colSpan={12} className="py-12 text-center text-slate-500">
                     <TableIcon className="w-8 h-8 mx-auto mb-2 opacity-40" />
                     No exercises match the selected filters. Try broadening your criteria.
                   </td>
                 </tr>
               ) : (
                 tableRows.map((row) => {
+                  const workoutKey = `${currentAthleteId}_w${row.weekNumber}_d${row.dayNumber}`;
+                  const isDone = completions[workoutKey]?.completed === true;
+
                   if (row.isRest) {
                     return (
                       <tr key={row.id} className="bg-slate-950/40 hover:bg-slate-800/20 transition">
+                        <td className="px-3 py-3 text-center text-slate-600">—</td>
                         <td className="px-4 py-3 whitespace-nowrap font-semibold text-slate-400">
                           Week {row.weekNumber}
                         </td>
@@ -392,8 +524,42 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
                   return (
                     <tr
                       key={row.id}
-                      className="hover:bg-slate-800/40 transition border-b border-slate-800/50"
+                      className={`hover:bg-slate-800/40 transition border-b border-slate-800/50 ${
+                        isDone ? 'bg-emerald-950/15' : ''
+                      }`}
                     >
+                      {/* Completion Checkbox */}
+                      <td className="px-3 py-3 text-center whitespace-nowrap">
+                        {onToggleWorkout ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onToggleWorkout(
+                                row.weekNumber,
+                                row.dayNumber,
+                                row.dayName,
+                                row.workoutTitle
+                              )
+                            }
+                            className="p-1 rounded text-slate-400 hover:text-emerald-400 transition"
+                            title={
+                              isDone
+                                ? 'Completed (Click to uncheck)'
+                                : 'Mark workout as completed'
+                            }
+                          >
+                            {isDone ? (
+                              <CheckSquare className="w-4 h-4 text-emerald-400 fill-emerald-500/20" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-600 hover:text-slate-400" />
+                            )}
+                          </button>
+                        ) : isDone ? (
+                          <CheckCircle className="w-4 h-4 text-emerald-400 mx-auto" />
+                        ) : (
+                          <span className="text-slate-600 text-xs">—</span>
+                        )}
+                      </td>
                       {/* Week / Phase */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">

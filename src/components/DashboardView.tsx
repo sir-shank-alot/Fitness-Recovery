@@ -6,10 +6,12 @@ import {
   Exercise,
   FitnessSyncService,
   WorkoutDay,
+  WorkoutCompletionState,
 } from '../types/rehab';
 import {
   calculatePainTrendStats,
   calculateReadinessStatus,
+  calculateWorkoutCompletionStats,
 } from '../utils/rehab-logic';
 import {
   Activity,
@@ -27,6 +29,9 @@ import {
   AlertTriangle,
   ExternalLink,
   PlusCircle,
+  CheckSquare,
+  Square,
+  BarChart3,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -42,6 +47,9 @@ interface DashboardViewProps {
   onNavigateToSpreadsheet: () => void;
   onNavigateToSync: () => void;
   onOpenVideo: (exercise: Exercise) => void;
+  completions?: WorkoutCompletionState;
+  onToggleWorkout?: (weekNumber: number, dayNumber: number, dayName: string, workoutTitle: string) => void;
+  onNavigateToStats?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -57,6 +65,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToSpreadsheet,
   onNavigateToSync,
   onOpenVideo,
+  completions = {},
+  onToggleWorkout,
+  onNavigateToStats,
 }) => {
   const [showAllInjuries, setShowAllInjuries] = useState(false);
 
@@ -185,62 +196,132 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Weekly Progress & Schedule link */}
         <div
-          onClick={onNavigateToSchedule}
+          onClick={onNavigateToStats || onNavigateToSchedule}
           className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-lg flex items-center justify-between cursor-pointer transition group"
         >
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Current Plan Phase
+              Plan Adherence Stats
             </span>
-            <div className="text-lg font-bold text-white mt-1 group-hover:text-cyan-400 transition">
-              {thisWeekPlan.phaseName.split(':')[0]}
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl sm:text-3xl font-black text-cyan-400">
+                {calculateWorkoutCompletionStats(weeks, athlete.id, completions).overallCompletionRate}%
+              </span>
+              <span className="text-xs text-slate-300 font-semibold">
+                ({calculateWorkoutCompletionStats(weeks, athlete.id, completions).totalCompletedWorkouts} done)
+              </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
-              Click to view all 12 weeks &rarr;
+              Click to view days &amp; weeks breakdown &rarr;
             </p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
-            <Calendar className="w-6 h-6" />
+            <BarChart3 className="w-6 h-6" />
           </div>
         </div>
       </div>
 
       {/* 3. Hero: Today's Workout Routine (Clean, Scannable & Direct Links) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                Today&apos;s Workout
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                {todayWorkout.dayName} • ~{todayWorkout.estimatedMinutes} minutes
-              </span>
-            </div>
-            <h2 className="text-lg sm:text-xl font-bold text-white mt-1">
-              {todayWorkout.title}
-            </h2>
-            <p className="text-xs text-slate-400">{todayWorkout.focus}</p>
-          </div>
+      {(() => {
+        const todayKey = `${athlete.id}_w${currentWeek}_d${todayWorkout.dayNumber}`;
+        const isTodayDone = completions[todayKey]?.completed === true;
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => onStartWorkout(todayWorkout)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Launch Guided Session</span>
-            </button>
-            <button
-              onClick={onNavigateToSpreadsheet}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs border border-slate-700 transition"
-              title="Open full 12-week spreadsheet"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Spreadsheet</span>
-            </button>
-          </div>
-        </div>
+        return (
+          <div
+            className={`rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 border transition ${
+              isTodayDone
+                ? 'bg-emerald-950/20 border-emerald-800/50'
+                : 'bg-slate-900 border-slate-800'
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-start gap-3">
+                {onToggleWorkout && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onToggleWorkout(
+                        currentWeek,
+                        todayWorkout.dayNumber,
+                        todayWorkout.dayName,
+                        todayWorkout.title
+                      )
+                    }
+                    className="mt-1 p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition"
+                    title={isTodayDone ? 'Mark as incomplete' : 'Mark workout as completed'}
+                  >
+                    {isTodayDone ? (
+                      <CheckSquare className="w-6 h-6 text-emerald-400 fill-emerald-500/20" />
+                    ) : (
+                      <Square className="w-6 h-6 text-slate-500 hover:text-slate-300" />
+                    )}
+                  </button>
+                )}
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                      Today&apos;s Workout
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {todayWorkout.dayName} • ~{todayWorkout.estimatedMinutes} minutes
+                    </span>
+                    {isTodayDone && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Completed
+                      </span>
+                    )}
+                  </div>
+                  <h2
+                    className={`text-lg sm:text-xl font-bold mt-1 ${
+                      isTodayDone ? 'text-emerald-200' : 'text-white'
+                    }`}
+                  >
+                    {todayWorkout.title}
+                  </h2>
+                  <p className="text-xs text-slate-400">{todayWorkout.focus}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {onToggleWorkout && (
+                  <button
+                    onClick={() =>
+                      onToggleWorkout(
+                        currentWeek,
+                        todayWorkout.dayNumber,
+                        todayWorkout.dayName,
+                        todayWorkout.title
+                      )
+                    }
+                    className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border transition ${
+                      isTodayDone
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                    }`}
+                  >
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${isTodayDone ? 'text-emerald-400' : 'text-slate-400'}`} />
+                    <span>{isTodayDone ? 'Completed' : 'Mark Done'}</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => onStartWorkout(todayWorkout)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Launch Guided Session</span>
+                </button>
+                <button
+                  onClick={onNavigateToSpreadsheet}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs border border-slate-700 transition"
+                  title="Open full 12-week spreadsheet"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline">Spreadsheet</span>
+                </button>
+              </div>
+            </div>
 
         {/* Clean Exercise List with Direct YouTube Buttons */}
         <div className="divide-y divide-slate-800/80">
@@ -311,6 +392,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
       </div>
+      );
+      })()}
 
       {/* 4. Simplified Injury & Recovery Status (Compact & Collapsible) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-3">

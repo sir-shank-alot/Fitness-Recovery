@@ -138,3 +138,40 @@ export interface AssessmentResult {
   calculatedReadinessTier: 'Foundational Re-education' | 'Controlled Loading' | 'Dynamic Re-integration';
   actionableInsights: string[];
 }
+
+export interface WorkoutCompletionState {
+  // Key format: `${athleteId}_w${weekNumber}_d${dayNumber}`
+  [workoutKey: string]: {
+    completed: boolean;
+    completedAt?: string;
+    completedExerciseIds?: string[];
+  };
+}
+
+export interface DayCompletionStat {
+  dayNumber: number;
+  dayName: string;
+  completedWorkouts: number;
+  totalWorkouts: number;
+  completionRate: number;
+}
+
+export interface WeekCompletionStat {
+  weekNumber: number;
+  phase: 1 | 2 | 3;
+  phaseName: string;
+  completedWorkouts: number;
+  totalWorkouts: number; // excluding pure rest days or including all active days
+  completionRate: number;
+  totalMinutesCompleted: number;
+}
+
+export interface WorkoutCompletionStats {
+  athleteId: AthleteId;
+  totalActiveWorkouts: number;
+  totalCompletedWorkouts: number;
+  overallCompletionRate: number;
+  totalMinutesCompleted: number;
+  dayStats: DayCompletionStat[];
+  weekStats: WeekCompletionStat[];
+}

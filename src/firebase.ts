@@ -13,6 +13,7 @@ import {
   getDocFromServer,
   collection,
   setDoc,
+  deleteDoc,
   getDocs,
   query,
   orderBy,
@@ -200,6 +201,8 @@ export interface WorkoutCompletionRecord {
   userId: string;
   athleteId: AthleteId;
   weekNumber: number;
+  dayNumber?: number;
+  dayName?: string;
   workoutTitle: string;
   completedExerciseIds: string[];
   completedAt: string;
@@ -222,5 +225,57 @@ export async function saveWorkoutCompletionToFirestore(
     });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, pathForWrite);
+  }
+}
+
+/**
+ * Remove a workout completion record when unchecked
+ */
+export async function deleteWorkoutCompletionFromFirestore(
+  userId: string,
+  completionId: string
+): Promise<void> {
+  const pathForDelete = `users/${userId}/workoutCompletions/${completionId}`;
+  try {
+    const compRef = doc(db, 'users', userId, 'workoutCompletions', completionId);
+    await deleteDoc(compRef);
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, pathForDelete);
+  }
+}
+
+/**
+ * Fetch all workout completions for an athlete
+ */
+export async function fetchWorkoutCompletionsFromFirestore(
+  userId: string,
+  athleteId?: AthleteId
+): Promise<WorkoutCompletionRecord[]> {
+  const pathForQuery = `users/${userId}/workoutCompletions`;
+  try {
+    const compsRef = collection(db, 'users', userId, 'workoutCompletions');
+    const q = athleteId
+      ? query(compsRef, where('athleteId', '==', athleteId))
+      : query(compsRef);
+
+    const snapshot = await getDocs(q);
+    const records: WorkoutCompletionRecord[] = [];
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      records.push({
+        id: docSnap.id,
+        userId: d.userId,
+        athleteId: d.athleteId,
+        weekNumber: d.weekNumber,
+        dayNumber: d.dayNumber,
+        dayName: d.dayName,
+        workoutTitle: d.workoutTitle,
+        completedExerciseIds: d.completedExerciseIds || [],
+        completedAt: d.completedAt || new Date().toISOString(),
+      });
+    });
+    return records;
+  } catch (err) {
+    handleFirestoreError(err, OperationType.GET, pathForQuery);
   }
 }

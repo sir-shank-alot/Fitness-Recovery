@@ -21,8 +21,8 @@ interface NavbarProps {
   currentAthleteId: AthleteId;
   athletes: Record<string, AthleteProfile>;
   onSelectAthlete: (id: AthleteId) => void;
-  activeTab: 'dashboard' | 'schedule' | 'spreadsheet' | 'sync' | 'assessment' | 'education';
-  onSelectTab: (tab: 'dashboard' | 'schedule' | 'spreadsheet' | 'sync' | 'assessment' | 'education') => void;
+  activeTab: 'dashboard' | 'schedule' | 'spreadsheet' | 'stats' | 'sync' | 'assessment' | 'education';
+  onSelectTab: (tab: 'dashboard' | 'schedule' | 'spreadsheet' | 'stats' | 'sync' | 'assessment' | 'education') => void;
   isCloudSynced?: boolean;
   currentUser?: User | null;
   onSignInGoogle?: () => void;
@@ -46,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard & Recovery', icon: Activity },
     { id: 'schedule', label: '12-Week Schedule', icon: Calendar },
+    { id: 'stats', label: 'Completion Stats', icon: UserCheck },
     { id: 'spreadsheet', label: 'Spreadsheet & Video Matrix', icon: FileSpreadsheet },
     { id: 'sync', label: 'Wearables & Health Sync', icon: Watch },
     { id: 'assessment', label: 'Movement Screen', icon: Stethoscope },

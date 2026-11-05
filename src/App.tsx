@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { AthleteId, Exercise, WorkoutDay, DailyLog, FitnessSyncService, AssessmentResult } from './types/rehab';
+import { AthleteId, Exercise, WorkoutDay, DailyLog, FitnessSyncService, AssessmentResult, WorkoutCompletionState } from './types/rehab';
 import {
   ATHLETE_PROFILES,
   EXERCISE_LIBRARY,
   FULL_12_WEEK_PLAN,
   INITIAL_DAILY_LOGS,
   INITIAL_SYNC_SERVICES,
+  get12WeekPlanForAthlete,
 } from './data/rehabData';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { ScheduleView } from './components/ScheduleView';
 import { SpreadsheetView } from './components/SpreadsheetView';
+import { CompletionStatsView } from './components/CompletionStatsView';
 import { HealthSyncView } from './components/HealthSyncView';
 import { AssessmentView } from './components/AssessmentView';
 import { EducationView } from './components/EducationView';
@@ -22,6 +24,8 @@ import {
   saveDailyLogToFirestore,
   fetchDailyLogsFromFirestore,
   saveWorkoutCompletionToFirestore,
+  deleteWorkoutCompletionFromFirestore,
+  fetchWorkoutCompletionsFromFirestore,
   signInWithGoogle,
   logOut,
   auth,
@@ -31,7 +35,7 @@ import { User, onAuthStateChanged } from 'firebase/auth';
 export default function App() {
   const [currentAthleteId, setCurrentAthleteId] = useState<AthleteId>('arwel');
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'schedule' | 'spreadsheet' | 'sync' | 'assessment' | 'education'
+    'dashboard' | 'schedule' | 'spreadsheet' | 'stats' | 'sync' | 'assessment' | 'education'
   >('dashboard');
   const [currentWeek, setCurrentWeek] = useState<number>(1);
 
@@ -46,6 +50,24 @@ export default function App() {
 
   // Daily Checkin Modal
   const [isCheckinOpen, setIsCheckinOpen] = useState(false);
+
+  // Workout Completion State: keyed by `${athleteId}_w${weekNumber}_d${dayNumber}`
+  const [completions, setCompletions] = useState<WorkoutCompletionState>(() => {
+    try {
+      const saved = localStorage.getItem('spine_stride_completions');
+      if (saved) return JSON.parse(saved);
+      // Default initial baseline: Week 1 Day 1 completed for Arwel
+      return {
+        'arwel_w1_d1': {
+          completed: true,
+          completedAt: new Date(Date.now() - 86400000).toISOString(),
+          completedExerciseIds: ['mcgill-curlup', 'adductor-ball-squeeze', 'isometric-hip-abduction-wall', 'short-foot-intrinsic-doming', 'cat-cow-segmental'],
+        },
+      };
+    } catch {
+      return {};
+    }
+  });
 
   // Firebase Auth and Cloud Sync state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -97,8 +119,26 @@ export default function App() {
               return [...prev, ...newUnique];
             });
           }
+
+          const remoteComps = await fetchWorkoutCompletionsFromFirestore(user.uid, currentAthleteId);
+          if (remoteComps && remoteComps.length > 0 && isMounted) {
+            setCompletions((prev) => {
+              const updated = { ...prev };
+              remoteComps.forEach((rec) => {
+                if (rec.weekNumber && rec.dayNumber) {
+                  const key = `${rec.athleteId}_w${rec.weekNumber}_d${rec.dayNumber}`;
+                  updated[key] = {
+                    completed: true,
+                    completedAt: rec.completedAt,
+                    completedExerciseIds: rec.completedExerciseIds,
+                  };
+                }
+              });
+              return updated;
+            });
+          }
         } catch (err) {
-          console.warn('Notice loading Firestore logs:', err);
+          console.warn('Notice loading Firestore logs/completions:', err);
         }
       }
     });
@@ -142,11 +182,83 @@ export default function App() {
     }
   }, [syncServices]);
 
-  const currentAthlete = ATHLETE_PROFILES[currentAthleteId];
+  useEffect(() => {
+    try {
+      localStorage.setItem('spine_stride_completions', JSON.stringify(completions));
+    } catch {
+      // ignore
+    }
+  }, [completions]);
 
-  // Handler for workout completion
+  const currentAthlete = ATHLETE_PROFILES[currentAthleteId];
+  const activeAthletePlan = get12WeekPlanForAthlete(currentAthleteId);
+
+  // Handler for direct workout checkbox toggle
+  const handleToggleWorkout = (
+    weekNumber: number,
+    dayNumber: number,
+    dayName: string,
+    workoutTitle: string
+  ) => {
+    const key = `${currentAthleteId}_w${weekNumber}_d${dayNumber}`;
+    const currentlyDone = completions[key]?.completed === true;
+
+    if (currentlyDone) {
+      setCompletions((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+
+      if (currentUser) {
+        deleteWorkoutCompletionFromFirestore(
+          currentUser.uid,
+          `${currentAthleteId}-w${weekNumber}-d${dayNumber}`
+        ).catch((err) => console.warn('Could not delete completion from Firestore:', err));
+      }
+    } else {
+      const completionTime = new Date().toISOString();
+      setCompletions((prev) => ({
+        ...prev,
+        [key]: {
+          completed: true,
+          completedAt: completionTime,
+        },
+      }));
+
+      if (currentUser) {
+        saveWorkoutCompletionToFirestore(currentUser.uid, {
+          id: `${currentAthleteId}-w${weekNumber}-d${dayNumber}`,
+          userId: currentUser.uid,
+          athleteId: currentAthleteId,
+          weekNumber,
+          dayNumber,
+          dayName,
+          workoutTitle,
+          completedExerciseIds: [],
+          completedAt: completionTime,
+        }).catch((err) => console.warn('Could not save completion record to Firestore:', err));
+      }
+    }
+  };
+
+  // Handler for workout completion via Guided Companion Modal
   const handleFinishWorkout = (completedExerciseIds: string[]) => {
     if (!activeWorkoutModal) return;
+    const { workout, weekNumber } = activeWorkoutModal;
+    const completionTime = new Date().toISOString();
+    const key = `${currentAthleteId}_w${weekNumber}_d${workout.dayNumber}`;
+
+    // Mark completion in state
+    setCompletions((prev) => ({
+      ...prev,
+      [key]: {
+        completed: true,
+        completedAt: completionTime,
+        completedExerciseIds,
+      },
+    }));
+
     const newLog: DailyLog = {
       id: `workout-${Date.now()}`,
       date: new Date().toISOString().slice(0, 10),
@@ -159,7 +271,7 @@ export default function App() {
       sleepHours: 7.8,
       hrvMs: 64,
       steps: 8400,
-      notes: `Completed Week ${activeWorkoutModal.weekNumber} session: ${activeWorkoutModal.workout.title}`,
+      notes: `Completed Week ${weekNumber} session: ${workout.title}`,
       gaitChecklist: {
         toeClearanceScore: currentAthleteId === 'arwel' ? 4 : undefined,
         firstStepPainVAS: currentAthleteId === 'helen' ? 2 : undefined,
@@ -175,13 +287,15 @@ export default function App() {
         console.warn('Could not save workout log to Firestore:', err)
       );
       saveWorkoutCompletionToFirestore(currentUser.uid, {
-        id: `completion-${Date.now()}`,
+        id: `${currentAthleteId}-w${weekNumber}-d${workout.dayNumber}`,
         userId: currentUser.uid,
         athleteId: currentAthleteId,
-        weekNumber: activeWorkoutModal.weekNumber,
-        workoutTitle: activeWorkoutModal.workout.title,
+        weekNumber,
+        dayNumber: workout.dayNumber,
+        dayName: workout.dayName,
+        workoutTitle: workout.title,
         completedExerciseIds,
-        completedAt: new Date().toISOString(),
+        completedAt: completionTime,
       }).catch((err) => console.warn('Could not save completion record to Firestore:', err));
     }
   };
@@ -257,7 +371,7 @@ export default function App() {
           <DashboardView
             athlete={currentAthlete}
             currentWeek={currentWeek}
-            weeks={FULL_12_WEEK_PLAN}
+            weeks={activeAthletePlan}
             exercises={EXERCISE_LIBRARY}
             logs={logs}
             syncServices={syncServices}
@@ -269,12 +383,15 @@ export default function App() {
             onNavigateToSpreadsheet={() => setActiveTab('spreadsheet')}
             onNavigateToSync={() => setActiveTab('sync')}
             onOpenVideo={(exercise) => setVideoModalExercise(exercise)}
+            completions={completions}
+            onToggleWorkout={handleToggleWorkout}
+            onNavigateToStats={() => setActiveTab('stats')}
           />
         )}
 
         {activeTab === 'schedule' && (
           <ScheduleView
-            weeks={FULL_12_WEEK_PLAN}
+            weeks={activeAthletePlan}
             exercises={EXERCISE_LIBRARY}
             currentAthleteId={currentAthleteId}
             athleteName={currentAthlete.name}
@@ -282,15 +399,35 @@ export default function App() {
               setActiveWorkoutModal({ workout, weekNumber: weekNum })
             }
             onOpenVideo={(exercise) => setVideoModalExercise(exercise)}
+            completions={completions}
+            onToggleWorkout={handleToggleWorkout}
+            onNavigateToStats={() => setActiveTab('stats')}
+          />
+        )}
+
+        {activeTab === 'stats' && (
+          <CompletionStatsView
+            weeks={activeAthletePlan}
+            currentAthlete={currentAthlete}
+            completions={completions}
+            onToggleWorkout={handleToggleWorkout}
+            onNavigateToSchedule={(wNum) => {
+              setCurrentWeek(wNum);
+              setActiveTab('schedule');
+            }}
           />
         )}
 
         {activeTab === 'spreadsheet' && (
           <SpreadsheetView
-            weeks={FULL_12_WEEK_PLAN}
+            weeks={activeAthletePlan}
             exercises={EXERCISE_LIBRARY}
             currentAthleteId={currentAthleteId}
+            athleteName={currentAthlete.name}
             onOpenVideo={(exercise) => setVideoModalExercise(exercise)}
+            completions={completions}
+            onToggleWorkout={handleToggleWorkout}
+            onNavigateToStats={() => setActiveTab('stats')}
           />
         )}
 
