@@ -13,6 +13,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Video,
+  Youtube,
+  ExternalLink,
 } from 'lucide-react';
 
 interface WorkoutPlayerModalProps {
@@ -231,13 +233,25 @@ export const WorkoutPlayerModal: React.FC<WorkoutPlayerModalProps> = ({
                   <h4 className="text-2xl font-bold text-white mt-1.5">{currentExercise.name}</h4>
                   <p className="text-xs text-slate-400 mt-1">Equipment: {currentExercise.equipment}</p>
                 </div>
-                <button
-                  onClick={() => onOpenVideo(currentExercise)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-medium transition"
-                >
-                  <Video className="w-3.5 h-3.5" />
-                  <span>Video Demo</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={currentExercise.videoUrl || `https://www.youtube.com/watch?v=${currentExercise.videoEmbedId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg text-xs font-semibold transition"
+                    title="Watch exercise demonstration on YouTube"
+                  >
+                    <Youtube className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                    <span>YouTube ↗</span>
+                  </a>
+                  <button
+                    onClick={() => onOpenVideo(currentExercise)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium transition"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Cues</span>
+                  </button>
+                </div>
               </div>
 
               {/* Prescription Card */}

@@ -11,7 +11,11 @@ import {
   Menu,
   X,
   Flame,
+  Database,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
+import { User } from 'firebase/auth';
 
 interface NavbarProps {
   currentAthleteId: AthleteId;
@@ -19,6 +23,10 @@ interface NavbarProps {
   onSelectAthlete: (id: AthleteId) => void;
   activeTab: 'dashboard' | 'schedule' | 'spreadsheet' | 'sync' | 'assessment' | 'education';
   onSelectTab: (tab: 'dashboard' | 'schedule' | 'spreadsheet' | 'sync' | 'assessment' | 'education') => void;
+  isCloudSynced?: boolean;
+  currentUser?: User | null;
+  onSignInGoogle?: () => void;
+  onSignOut?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -27,6 +35,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectAthlete,
   activeTab,
   onSelectTab,
+  isCloudSynced = false,
+  currentUser = null,
+  onSignInGoogle,
+  onSignOut,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const currentAthlete = athletes[currentAthleteId];
@@ -91,6 +103,64 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Helen Shanley</span>
               <span className="text-[10px] opacity-75 hidden md:inline">(58F, 59kg)</span>
             </button>
+          </div>
+
+          {/* Cloud Sync Status Badge & Auth */}
+          <div className="hidden md:flex items-center gap-3">
+            {isCloudSynced ? (
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold shadow-sm"
+                title="Firebase Firestore live sync active"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <Database className="w-3.5 h-3.5" />
+                <span>Firebase Synced</span>
+              </div>
+            ) : (
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-medium"
+                title="Connecting to Firebase Firestore..."
+              >
+                <Database className="w-3.5 h-3.5 text-slate-500" />
+                <span>Local Cache</span>
+              </div>
+            )}
+
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200"
+                  title={`Logged in as ${currentUser.email || currentUser.displayName}`}
+                >
+                  <span className="w-5 h-5 rounded-full bg-cyan-600 text-white font-bold text-[10px] flex items-center justify-center">
+                    {currentUser.displayName ? currentUser.displayName[0] : (currentUser.email ? currentUser.email[0].toUpperCase() : 'U')}
+                  </span>
+                  <span className="hidden xl:inline max-w-[120px] truncate">
+                    {currentUser.displayName || currentUser.email}
+                  </span>
+                </div>
+                {onSignOut && (
+                  <button
+                    onClick={onSignOut}
+                    className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-red-400 border border-slate-800 transition"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              onSignInGoogle && (
+                <button
+                  onClick={onSignInGoogle}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/30 text-xs font-semibold transition"
+                  title="Sign in with Google to backup recovery data across devices"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Google Sign-In</span>
+                </button>
+              )
+            )}
           </div>
 
           {/* Mobile menu toggle */}

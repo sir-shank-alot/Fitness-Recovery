@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with athlete selection and preferences",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Auth UID"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Runner full name"
+        },
+        "currentAthleteId": {
+          "type": "string",
+          "enum": ["arwel", "helen"],
+          "description": "Selected runner profile"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Document creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["userId", "email", "currentAthleteId"]
+    },
+    "DailyLog": {
+      "title": "DailyLog",
+      "description": "Daily post-marathon check-in entry with pain VAS, mobility, and recovery metrics",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique log ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Auth UID of the owner"
+        },
+        "athleteId": {
+          "type": "string",
+          "enum": ["arwel", "helen"],
+          "description": "Target athlete"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of check-in YYYY-MM-DD"
+        },
+        "painScore": {
+          "type": "number",
+          "description": "VAS pain score 0-10"
+        },
+        "mobilityScore": {
+          "type": "number",
+          "description": "Mobility score 0-10"
+        },
+        "perceivedExertion": {
+          "type": "number",
+          "description": "Borg RPE 1-10"
+        },
+        "sleepHours": {
+          "type": "number",
+          "description": "Hours of sleep"
+        },
+        "hrvMs": {
+          "type": "number",
+          "description": "Heart rate variability rMSSD"
+        },
+        "steps": {
+          "type": "number",
+          "description": "Step count"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Subjective notes and observations"
+        },
+        "painAreas": {
+          "type": "object",
+          "description": "Map of specific injury sites to pain levels"
+        },
+        "completedExerciseIds": {
+          "type": "array",
+          "description": "Array of exercise IDs completed"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["id", "userId", "athleteId", "date", "painScore", "mobilityScore"]
+    },
+    "WorkoutCompletion": {
+      "title": "WorkoutCompletion",
+      "description": "Log of completed rehab workout session",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique completion ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Auth UID"
+        },
+        "athleteId": {
+          "type": "string",
+          "enum": ["arwel", "helen"],
+          "description": "Target athlete"
+        },
+        "weekNumber": {
+          "type": "number",
+          "description": "Week 1 to 12"
+        },
+        "dayName": {
+          "type": "string",
+          "description": "Day of week"
+        },
+        "workoutTitle": {
+          "type": "string",
+          "description": "Title of the workout session"
+        },
+        "completedExerciseIds": {
+          "type": "array",
+          "description": "List of completed exercise IDs"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Completion timestamp"
+        }
+      },
+      "required": ["id", "userId", "athleteId", "weekNumber", "workoutTitle"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Private profile of the authenticated runner"
+    },
+    "/users/{userId}/dailyLogs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/DailyLog"
+      },
+      "description": "Subcollection of daily check-ins for the runner"
+    },
+    "/users/{userId}/workoutCompletions/{completionId}": {
+      "schema": {
+        "$ref": "#/entities/WorkoutCompletion"
+      },
+      "description": "Subcollection of completed guided workouts"
+    }
+  }
+}

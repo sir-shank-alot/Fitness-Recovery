@@ -22,7 +22,7 @@ export const DailyCheckinModal: React.FC<DailyCheckinModalProps> = ({
   const [firstStepPain, setFirstStepPain] = useState<number>(2);
 
   // Area ratings
-  const defaultAreas =
+  const defaultAreas: Record<string, number> =
     athlete.id === 'arwel'
       ? {
           'Lower Back (Facet)': 3,

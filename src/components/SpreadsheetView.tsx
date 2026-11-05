@@ -10,6 +10,7 @@ import {
   Table as TableIcon,
   CheckCircle,
   FileSpreadsheet,
+  Youtube,
 } from 'lucide-react';
 
 interface SpreadsheetViewProps {
@@ -484,24 +485,24 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
                       {/* Video Link & Watch Modal Button */}
                       <td className="px-4 py-3 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => onOpenVideo(ex)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-semibold shadow transition"
-                            title={`Preview ${ex.name} demo video`}
-                          >
-                            <Play className="w-3 h-3 fill-current" />
-                            <span>Watch</span>
-                          </button>
                           <a
                             href={ex.videoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`Open ${ex.name} video on YouTube`}
-                            className="p-1 text-slate-400 hover:text-cyan-400 rounded-md hover:bg-slate-800 transition"
-                            title="Open external YouTube link"
+                            aria-label={`Watch ${ex.name} video on YouTube`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-600/90 hover:bg-red-600 text-white rounded-lg text-[11px] font-bold shadow transition hover:scale-105 active:scale-95"
+                            title={`Open ${ex.name} demo on YouTube`}
                           >
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            <Youtube className="w-3.5 h-3.5 fill-current" />
+                            <span>YouTube ↗</span>
                           </a>
+                          <button
+                            onClick={() => onOpenVideo(ex)}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-[11px] font-medium transition"
+                            title="View biomechanical form cues"
+                          >
+                            <span>Cues</span>
+                          </button>
                         </div>
                       </td>
                     </tr>

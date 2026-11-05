@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AthleteProfile,
   DailyLog,
@@ -14,17 +14,19 @@ import {
 import {
   Activity,
   Flame,
-  ShieldAlert,
   Play,
-  Heart,
   Calendar,
-  Watch,
-  PlusCircle,
   FileSpreadsheet,
   CheckCircle2,
   TrendingDown,
-  Info,
   Footprints,
+  Youtube,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  ExternalLink,
+  PlusCircle,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -56,6 +58,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToSync,
   onOpenVideo,
 }) => {
+  const [showAllInjuries, setShowAllInjuries] = useState(false);
+
   const athleteLogs = logs.filter((l) => l.athleteId === athlete.id);
   const latestLog =
     athleteLogs[athleteLogs.length - 1] || {
@@ -71,318 +75,296 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Today's workout from current week
   const thisWeekPlan = weeks.find((w) => w.weekNumber === currentWeek) || weeks[0];
-  // Pick today's workout day (e.g., day 1 or next unfinished)
   const todayWorkout = thisWeekPlan.days[0];
-
   const exerciseMap = new Map(exercises.map((e) => [e.id, e]));
 
   // Connected tracker metrics
   const activeService = syncServices.find((s) => s.connected) || syncServices[0];
 
   return (
-    <div className="space-y-6">
-      {/* Top Welcome / Athlete Hero Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-cyan-400 border border-cyan-500/20">
-                Auckland Marathon Recovery Hub
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* 1. Simplified Runner Profile Header */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div
+            className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg shrink-0"
+            style={{ backgroundColor: athlete.avatarColor }}
+          >
+            {athlete.name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                {athlete.name}
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Week {currentWeek} of 12
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Week {currentWeek} of 12 ({thisWeekPlan.phaseName.split(':')[0]})
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                {athlete.gender}, {athlete.age}y • {athlete.weightKg}kg
               </span>
             </div>
+            <p className="text-xs text-slate-400 flex items-center gap-1.5">
+              <Footprints className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span>
+                <strong className="text-slate-300">Gait Cue: </strong>
+                {athlete.id === 'arwel'
+                  ? 'Forward trunk 4-6°, brace lower abs, active right toe lift.'
+                  : 'Widen step width, soft midfoot landing, cadence 170+ spm.'}
+              </span>
+            </p>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg"
-                style={{ backgroundColor: athlete.avatarColor }}
-              >
-                {athlete.name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')}
-              </div>
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight">
-                  {athlete.name}
-                </h1>
-                <p className="text-sm text-slate-400">
-                  {athlete.gender} • {athlete.age} years old • {athlete.weightKg} kg •{' '}
-                  <span className="text-slate-300 font-medium">{athlete.raceCompleted}</span>
-                </p>
-              </div>
-            </div>
+        {/* Quick Action Buttons */}
+        <div className="flex items-center gap-2.5 shrink-0 pt-2 md:pt-0">
+          <button
+            onClick={() => onStartWorkout(todayWorkout)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-emerald-950/40 transition hover:scale-[1.02]"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            <span>Start Today&apos;s Workout</span>
+          </button>
+          <button
+            onClick={onOpenCheckin}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs sm:text-sm border border-slate-700 transition"
+          >
+            <PlusCircle className="w-4 h-4 text-cyan-400" />
+            <span>Check-In</span>
+          </button>
+        </div>
+      </div>
 
-            {/* Target Gait Cue Banner */}
-            <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 flex items-start gap-2.5 max-w-3xl">
-              <Footprints className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold text-white">Target Gait Re-Education Cue: </span>
-                {athlete.targetGaitCue}
-              </div>
+      {/* 2. Three Clean, High-Yield Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Recovery Readiness */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Readiness Status
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl sm:text-3xl font-black text-white">{readiness.score}%</span>
+              <span className="text-xs font-semibold text-emerald-400">
+                {readiness.status}
+              </span>
             </div>
+            <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{readiness.advice}</p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <Activity className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Current Pain Level */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Current Pain (VAS)
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl sm:text-3xl font-black text-white">
+                {painStats.latestPain}
+                <span className="text-sm font-normal text-slate-500"> / 10</span>
+              </span>
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-400">
+                <TrendingDown className="w-3.5 h-3.5" /> -{painStats.painReductionPct}%
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Down from {painStats.initialPain}/10 post-marathon
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center shrink-0">
+            <Flame className="w-6 h-6" />
+          </div>
+        </div>
+
+        {/* Weekly Progress & Schedule link */}
+        <div
+          onClick={onNavigateToSchedule}
+          className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 sm:p-5 shadow-lg flex items-center justify-between cursor-pointer transition group"
+        >
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Current Plan Phase
+            </span>
+            <div className="text-lg font-bold text-white mt-1 group-hover:text-cyan-400 transition">
+              {thisWeekPlan.phaseName.split(':')[0]}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Click to view all 12 weeks &rarr;
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <Calendar className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Hero: Today's Workout Routine (Clean, Scannable & Direct Links) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                Today&apos;s Workout
+              </span>
+              <span className="text-xs text-slate-400 font-medium">
+                {todayWorkout.dayName} • ~{todayWorkout.estimatedMinutes} minutes
+              </span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-white mt-1">
+              {todayWorkout.title}
+            </h2>
+            <p className="text-xs text-slate-400">{todayWorkout.focus}</p>
           </div>
 
-          {/* Quick Action Button Group */}
-          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={onOpenCheckin}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-cyan-950/40 transition hover:scale-[1.02] active:scale-[0.98]"
+              onClick={() => onStartWorkout(todayWorkout)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition"
             >
-              <PlusCircle className="w-4 h-4" />
-              <span>Log Daily Check-In</span>
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Launch Guided Session</span>
             </button>
             <button
               onClick={onNavigateToSpreadsheet}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs border border-slate-700 transition"
+              title="Open full 12-week spreadsheet"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Full 12-Week Sheet</span>
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Spreadsheet</span>
             </button>
           </div>
         </div>
-      </div>
 
-      {/* 4 Stat Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Readiness Meter */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Recovery Readiness
-            </span>
-            <span
-              className={`p-2 rounded-xl text-xs font-bold ${
-                readiness.status === 'Optimal'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-              }`}
-            >
-              {readiness.status}
-            </span>
-          </div>
-          <div className="my-3">
-            <div className="text-3xl font-black text-white">{readiness.score}%</div>
-            <p className="text-xs text-slate-400 mt-1 line-clamp-1">{readiness.advice}</p>
-          </div>
-          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${
-                readiness.status === 'Optimal' ? 'bg-emerald-500' : 'bg-amber-500'
-              }`}
-              style={{ width: `${readiness.score}%` }}
-            />
-          </div>
-        </div>
+        {/* Clean Exercise List with Direct YouTube Buttons */}
+        <div className="divide-y divide-slate-800/80">
+          {todayWorkout.exercises.map((item, idx) => {
+            const ex = exerciseMap.get(item.exerciseId);
+            if (!ex) return null;
 
-        {/* Current Pain Score */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Current Pain (VAS)
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-              <TrendingDown className="w-3.5 h-3.5" /> -{painStats.painReductionPct}%
-            </span>
-          </div>
-          <div className="my-3">
-            <div className="text-3xl font-black text-white">
-              {painStats.latestPain} <span className="text-sm font-normal text-slate-500">/ 10</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Down from {painStats.initialPain}/10 post-marathon baseline
-            </p>
-          </div>
-          <div className="text-[11px] text-slate-500">
-            Average across logged sessions: {painStats.averagePain}/10
-          </div>
-        </div>
-
-        {/* Mobility Progression */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Spine &amp; Hip Mobility
-            </span>
-            <Flame className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div className="my-3">
-            <div className="text-3xl font-black text-cyan-400">
-              {painStats.latestMobility}
-              <span className="text-sm font-normal text-slate-400"> / 100</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">Full pelvic &amp; spinal flexion neutrality</p>
-          </div>
-          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div
-              className="bg-cyan-500 h-full rounded-full"
-              style={{ width: `${painStats.latestMobility}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Health Tracker Sync */}
-        <div
-          onClick={onNavigateToSync}
-          className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between cursor-pointer transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Synced Tracker
-            </span>
-            <span className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Connected
-            </span>
-          </div>
-          <div className="my-3">
-            <div className="text-lg font-bold text-white flex items-center gap-2">
-              <Watch className="w-5 h-5 text-purple-400" /> {activeService.name}
-            </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Cadence: <span className="text-slate-200">{activeService.metrics.cadenceAvgSpM} spm</span> • Balance:{' '}
-              <span className="text-slate-200">{activeService.metrics.groundContactBalance}</span>
-            </p>
-          </div>
-          <div className="text-[11px] text-cyan-400 hover:underline flex items-center justify-between">
-            <span>Manage Devices</span>
-            <span>&rarr;</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Grid: Today's Routine vs Injury Recovery Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left 7 Columns: Today's Scheduled Routine */}
-        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-                Today&apos;s Prescribed Session
-              </span>
-              <h3 className="text-xl font-bold text-white mt-0.5">{todayWorkout.title}</h3>
-              <p className="text-xs text-slate-400">
-                Focus: {todayWorkout.focus} • Estimated time: {todayWorkout.estimatedMinutes} mins
-              </p>
-            </div>
-            <button
-              onClick={() => onStartWorkout(todayWorkout)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950/40 transition hover:scale-[1.02]"
-            >
-              <Play className="w-4 h-4 fill-current" />
-              <span>Start Workout</span>
-            </button>
-          </div>
-
-          {/* Exercise items list for today */}
-          <div className="space-y-3 pt-2">
-            {todayWorkout.exercises.map((item, idx) => {
-              const ex = exerciseMap.get(item.exerciseId);
-              if (!ex) return null;
-              return (
-                <div
-                  key={item.exerciseId}
-                  className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 hover:border-slate-600 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center">
-                        {idx + 1}
-                      </span>
-                      <h4 className="text-sm font-bold text-white">{ex.name}</h4>
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-cyan-300 border border-slate-700">
+            return (
+              <div
+                key={item.exerciseId}
+                className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-800/25 px-2 rounded-xl transition"
+              >
+                {/* Movement Info */}
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 border border-slate-700">
+                    {idx + 1}
+                  </span>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">{ex.name}</h3>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
                         {ex.category}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 pl-7 line-clamp-1">
-                      {ex.techniqueCues[0]}
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      <strong className="text-emerald-400">
+                        {item.customSets || ex.defaultSets} sets
+                      </strong>{' '}
+                      × {item.customReps || ex.defaultReps} • Equipment: {ex.equipment}
                     </p>
                   </div>
-
-                  <div className="flex items-center justify-between sm:justify-end gap-3 pl-7 sm:pl-0">
-                    <div className="text-right text-xs">
-                      <span className="font-semibold text-emerald-400">
-                        {item.customSets || ex.defaultSets} sets
-                      </span>
-                      <span className="text-slate-400 block text-[11px]">
-                        {item.customReps || ex.defaultReps}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => onOpenVideo(ex)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 text-xs font-medium transition"
-                      title="Preview demonstration video"
-                    >
-                      <Play className="w-3 h-3 fill-current" />
-                      <span>Demo</span>
-                    </button>
-                  </div>
                 </div>
-              );
-            })}
-          </div>
 
-          <div className="pt-2 flex justify-between items-center text-xs text-slate-400">
-            <span>Weekly Mileage Tolerance: {thisWeekPlan.targetWalkingRunningTolerance}</span>
-            <button
-              onClick={onNavigateToSchedule}
-              className="text-cyan-400 hover:underline font-semibold"
-            >
-              View Full Week Schedule &rarr;
-            </button>
-          </div>
+                {/* Direct Action Buttons: YouTube & Form Details */}
+                <div className="flex items-center gap-2 pl-9 sm:pl-0 shrink-0">
+                  {/* Direct YouTube Link Button */}
+                  <a
+                    href={ex.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-lg text-xs font-bold shadow transition hover:scale-105 active:scale-95"
+                    title={`Open ${ex.name} video on YouTube`}
+                  >
+                    <Youtube className="w-3.5 h-3.5 fill-current" />
+                    <span>YouTube ↗</span>
+                  </a>
+
+                  {/* Form Cues Preview Modal */}
+                  <button
+                    onClick={() => onOpenVideo(ex)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition"
+                  >
+                    <span>Form Cues</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Right 5 Columns: Specific Injury Diagnostic Matrix & Contraindications */}
-        <div className="lg:col-span-5 space-y-5">
-          {/* Contraindications Warning Box */}
-          <div className="bg-rose-950/20 border border-rose-900/50 rounded-2xl p-5 shadow-lg space-y-2">
-            <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
-              <ShieldAlert className="w-4 h-4 shrink-0" />
-              <span>Crucial Contraindications for {athlete.name}</span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {athlete.keyContraindicationNotice}
-            </p>
-          </div>
+        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2 border-t border-slate-800">
+          <span>Weekly Mileage Limit: {thisWeekPlan.targetWalkingRunningTolerance}</span>
+          <button
+            onClick={onNavigateToSchedule}
+            className="text-cyan-400 hover:underline font-semibold"
+          >
+            Explore All 7 Days of Week {currentWeek} &rarr;
+          </button>
+        </div>
+      </div>
 
-          {/* Injury Resolution Status Cards */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+      {/* 4. Simplified Injury & Recovery Status (Compact & Collapsible) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Auckland Marathon Injury Status
+              {athlete.name}&apos;s Injury Recovery Focus
             </h3>
-
-            <div className="space-y-3">
-              {athlete.injuries.map((injury) => (
-                <div
-                  key={injury.id}
-                  className="p-3.5 rounded-xl bg-slate-800/40 border border-slate-700/50 space-y-2"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold text-white">{injury.title}</h4>
-                      <p className="text-[11px] text-slate-400">{injury.anatomicalSite}</p>
-                    </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Rehab Active
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {injury.clinicalExplanation}
-                  </p>
-
-                  <div className="pt-1 text-[11px] text-cyan-400 font-medium">
-                    Priority: {injury.rehabFocus[0]}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
+          <button
+            onClick={() => setShowAllInjuries(!showAllInjuries)}
+            className="text-xs text-cyan-400 hover:underline font-semibold flex items-center gap-1"
+          >
+            <span>{showAllInjuries ? 'Show Less' : 'View Full Details'}</span>
+            {showAllInjuries ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
+        {/* Crucial Contraindication Note */}
+        <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-900/40 text-xs text-rose-300 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+          <span>
+            <strong className="text-rose-200">Key Safety Rule: </strong>
+            {athlete.keyContraindicationNotice}
+          </span>
+        </div>
+
+        {/* Compact Injury Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {athlete.injuries.map((injury) => (
+            <div
+              key={injury.id}
+              className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 space-y-1.5"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-white truncate max-w-[220px]">
+                  {injury.title}
+                </h4>
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+                  Active
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1">
+                {injury.anatomicalSite}
+              </p>
+              {showAllInjuries && (
+                <div className="pt-1 text-[11px] text-slate-300 border-t border-slate-700/50 space-y-1">
+                  <p>{injury.clinicalExplanation}</p>
+                  <p className="text-cyan-400 font-medium">Priority: {injury.rehabFocus[0]}</p>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all unknown collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common security helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'i.arwel.thomas@gmail.com') ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User profile validation
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'email', 'currentAthleteId'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.email is string && data.email.size() <= 254
+        && (data.currentAthleteId == 'arwel' || data.currentAthleteId == 'helen');
+    }
+
+    // Daily Log validation
+    function isValidDailyLog(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'athleteId', 'date', 'painScore', 'mobilityScore'])
+        && data.id is string && isValidId(data.id)
+        && data.userId is string && data.userId == userId && data.userId == request.auth.uid
+        && (data.athleteId == 'arwel' || data.athleteId == 'helen')
+        && data.date is string && data.date.size() <= 12
+        && data.painScore is number && data.painScore >= 0 && data.painScore <= 10
+        && data.mobilityScore is number && data.mobilityScore >= 0 && data.mobilityScore <= 10;
+    }
+
+    // Workout completion validation
+    function isValidWorkoutCompletion(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'athleteId', 'weekNumber', 'workoutTitle'])
+        && data.id is string && isValidId(data.id)
+        && data.userId is string && data.userId == userId && data.userId == request.auth.uid
+        && (data.athleteId == 'arwel' || data.athleteId == 'helen')
+        && data.weekNumber is number && data.weekNumber >= 1 && data.weekNumber <= 12
+        && data.workoutTitle is string && data.workoutTitle.size() <= 200;
+    }
+
+    // 1. User Profiles Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if (isOwner(userId) || isAdmin()) && isValidId(userId) && isValidUserProfile(incoming())
+        && incoming().userId == existing().userId;
+      allow delete: if isAdmin();
+
+      // 2. Daily Recovery Logs Subcollection
+      match /dailyLogs/{logId} {
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidId(logId) && isValidDailyLog(incoming(), userId);
+        allow update: if (isOwner(userId) || isAdmin()) && isValidId(logId) && isValidDailyLog(incoming(), userId)
+          && incoming().id == existing().id && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      // 3. Workout Completions Subcollection
+      match /workoutCompletions/{completionId} {
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidId(completionId) && isValidWorkoutCompletion(incoming(), userId);
+        allow update: if (isOwner(userId) || isAdmin()) && isValidId(completionId) && isValidWorkoutCompletion(incoming(), userId)
+          && incoming().id == existing().id && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+  }
+}

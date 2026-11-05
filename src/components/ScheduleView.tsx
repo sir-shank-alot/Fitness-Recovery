@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ShieldCheck,
   Video,
+  Youtube,
 } from 'lucide-react';
 
 interface ScheduleViewProps {
@@ -187,13 +188,25 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                           </p>
                         </div>
 
-                        <button
-                          onClick={() => onOpenVideo(ex)}
-                          className="shrink-0 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 text-xs transition"
-                          title="Preview video demo"
-                        >
-                          <Video className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <a
+                            href={ex.videoUrl || `https://www.youtube.com/watch?v=${ex.videoEmbedId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 p-1.5 rounded-lg bg-red-600/15 hover:bg-red-600/30 text-red-400 border border-red-500/30 text-xs transition flex items-center gap-1"
+                            title="Watch on YouTube"
+                          >
+                            <Youtube className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                            <span className="text-[10px] font-semibold hidden sm:inline">YouTube ↗</span>
+                          </a>
+                          <button
+                            onClick={() => onOpenVideo(ex)}
+                            className="shrink-0 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 text-xs transition"
+                            title="Preview video demo and cues"
+                          >
+                            <Video className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       <p className="text-[11px] text-slate-400 line-clamp-2 pl-5">

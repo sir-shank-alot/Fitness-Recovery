@@ -17,6 +17,16 @@ import { EducationView } from './components/EducationView';
 import { VideoModal } from './components/VideoModal';
 import { WorkoutPlayerModal } from './components/WorkoutPlayerModal';
 import { DailyCheckinModal } from './components/DailyCheckinModal';
+import {
+  testConnection,
+  saveDailyLogToFirestore,
+  fetchDailyLogsFromFirestore,
+  saveWorkoutCompletionToFirestore,
+  signInWithGoogle,
+  logOut,
+  auth,
+} from './firebase';
+import { User, onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
   const [currentAthleteId, setCurrentAthleteId] = useState<AthleteId>('arwel');
@@ -37,6 +47,10 @@ export default function App() {
   // Daily Checkin Modal
   const [isCheckinOpen, setIsCheckinOpen] = useState(false);
 
+  // Firebase Auth and Cloud Sync state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isCloudSynced, setIsCloudSynced] = useState<boolean>(false);
+
   // Persisted state: Daily logs
   const [logs, setLogs] = useState<DailyLog[]>(() => {
     try {
@@ -56,6 +70,60 @@ export default function App() {
       return INITIAL_SYNC_SERVICES;
     }
   });
+
+  // Initialize Firebase connection and listen to auth state
+  useEffect(() => {
+    let isMounted = true;
+
+    // Test Firestore connection on boot
+    testConnection().then((ok) => {
+      if (ok && isMounted) {
+        setIsCloudSynced(true);
+      }
+    });
+
+    // Listen to Google Auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!isMounted) return;
+      setCurrentUser(user);
+      if (user) {
+        setIsCloudSynced(true);
+        try {
+          const remoteLogs = await fetchDailyLogsFromFirestore(user.uid, currentAthleteId);
+          if (remoteLogs && remoteLogs.length > 0 && isMounted) {
+            setLogs((prev) => {
+              const existingIds = new Set(prev.map((l) => l.id));
+              const newUnique = remoteLogs.filter((l) => !existingIds.has(l.id));
+              return [...prev, ...newUnique];
+            });
+          }
+        } catch (err) {
+          console.warn('Notice loading Firestore logs:', err);
+        }
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [currentAthleteId]);
+
+  const handleSignInGoogle = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      console.error('Sign-in failed:', err);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+    } catch (err) {
+      console.error('Sign-out failed:', err);
+    }
+  };
 
   // Save changes to localStorage
   useEffect(() => {
@@ -100,11 +168,34 @@ export default function App() {
     };
 
     setLogs((prev) => [...prev, newLog]);
+
+    // Persist to Firebase Firestore
+    if (currentUser) {
+      saveDailyLogToFirestore(currentUser.uid, newLog).catch((err) =>
+        console.warn('Could not save workout log to Firestore:', err)
+      );
+      saveWorkoutCompletionToFirestore(currentUser.uid, {
+        id: `completion-${Date.now()}`,
+        userId: currentUser.uid,
+        athleteId: currentAthleteId,
+        weekNumber: activeWorkoutModal.weekNumber,
+        workoutTitle: activeWorkoutModal.workout.title,
+        completedExerciseIds,
+        completedAt: new Date().toISOString(),
+      }).catch((err) => console.warn('Could not save completion record to Firestore:', err));
+    }
   };
 
   // Handler for saving daily checkin
   const handleSaveCheckinLog = (newLog: DailyLog) => {
     setLogs((prev) => [...prev, newLog]);
+
+    // Persist to Firebase Firestore
+    if (currentUser) {
+      saveDailyLogToFirestore(currentUser.uid, newLog).catch((err) =>
+        console.warn('Could not save daily check-in to Firestore:', err)
+      );
+    }
   };
 
   // Handler for wearable sync
@@ -154,6 +245,10 @@ export default function App() {
         onSelectAthlete={(id) => setCurrentAthleteId(id)}
         activeTab={activeTab}
         onSelectTab={(tab) => setActiveTab(tab)}
+        isCloudSynced={isCloudSynced}
+        currentUser={currentUser}
+        onSignInGoogle={handleSignInGoogle}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content Area */}

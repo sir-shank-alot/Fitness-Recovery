@@ -220,8 +220,8 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '6-4-2 pyramid holds (10s hold each)',
     frequency: '4x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=q3nDayp5s6U',
-    videoEmbedId: 'q3nDayp5s6U',
+    videoUrl: 'https://www.youtube.com/watch?v=uzMYRO05kJw',
+    videoEmbedId: 'uzMYRO05kJw',
     videoChannel: 'Dr. Stuart McGill / BackFitPro / Squat University',
     rationale:
       'Spares the lumbar spine by maintaining neutral lordosis with hands placed under the lower back, while activating the rectus abdominis and obliques without spinal flexion shear.',
@@ -250,9 +250,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '5 reps of 10s holds per side',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=hZgUvXqjMvg',
-    videoEmbedId: 'hZgUvXqjMvg',
-    videoChannel: 'Squat University / McGill Protocol',
+    videoUrl: 'https://www.youtube.com/watch?v=DICb29SKTaM',
+    videoEmbedId: 'DICb29SKTaM',
+    videoChannel: 'Dr. Stuart McGill / BackFitPro',
     rationale:
       'Chairs high lateral core and quadratus lumborum stiffness with minimal compressive spinal load, stabilizing the pelvis during the running stance phase.',
     techniqueCues: [
@@ -280,9 +280,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '5 reps of 8s hold per diagonal',
     frequency: '4x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=wiFNA3sqjCA',
-    videoEmbedId: 'wiFNA3sqjCA',
-    videoChannel: 'Dr. Stuart McGill / Physiotutors',
+    videoUrl: 'https://www.youtube.com/watch?v=S1QbyYZaXIg',
+    videoEmbedId: 'S1QbyYZaXIg',
+    videoChannel: 'Dr. Stuart McGill / Squat University',
     rationale:
       'Activates erector spinae, multifidus, and gluteus maximus simultaneously without placing the lumbar spine into extension or rotational strain.',
     techniqueCues: [
@@ -310,9 +310,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '10 alternating reps (5 per side)',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=4XLEnwUr1d8',
-    videoEmbedId: '4XLEnwUr1d8',
-    videoChannel: 'E3 Rehab / Biomechanics',
+    videoUrl: 'https://www.youtube.com/watch?v=o4GKiEoYClI',
+    videoEmbedId: 'o4GKiEoYClI',
+    videoChannel: 'Pursuit Physical Therapy / Core Stability',
     rationale:
       'Retrains the deep anterior core (transverse abdominis & internal obliques) to resist lumbar hyperextension when the legs reach out, directly countering Arwel’s upright running posture.',
     techniqueCues: [
@@ -342,9 +342,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 4,
     defaultReps: '5 reps of 10s isometric squeeze at 70% effort',
     frequency: '4x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=l_aGv8jJ-4Y',
-    videoEmbedId: 'l_aGv8jJ-4Y',
-    videoChannel: 'Physiotutors / Sports Groin Protocol',
+    videoUrl: 'https://www.youtube.com/watch?v=pNsiAiFLF68',
+    videoEmbedId: 'pNsiAiFLF68',
+    videoChannel: 'Sports Groin Protocol / Physiotutors',
     rationale:
       'Isometric adductor loading stimulates collagen synthesis and restores neuromuscular recruitment in the adductor longus without tendon elongation shear.',
     techniqueCues: [
@@ -372,9 +372,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '15-20s hold per side',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=1b-iE93yVwA',
-    videoEmbedId: '1b-iE93yVwA',
-    videoChannel: 'Squat University / British Journal of Sports Medicine',
+    videoUrl: 'https://www.youtube.com/watch?v=CYfcIXEA78s',
+    videoEmbedId: 'CYfcIXEA78s',
+    videoChannel: 'Physical Therapy & Sports Medicine',
     rationale:
       'Gold-standard rehabilitation exercise for adductor strains. The bent-knee version reduces the lever arm to safely rebuild high eccentric and isometric adductor resilience.',
     techniqueCues: [
@@ -403,9 +403,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '10 slow controlled reps per side',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=b4XpW_Q7q98',
-    videoEmbedId: 'b4XpW_Q7q98',
-    videoChannel: 'Athlean-X / Running Biomechanics',
+    videoUrl: 'https://www.youtube.com/watch?v=P1LDP4BG9Q4',
+    videoEmbedId: 'P1LDP4BG9Q4',
+    videoChannel: 'Running Biomechanics & Physical Therapy',
     rationale:
       'Retrains active swing-phase hip flexion coupled with tibialis anterior ankle dorsiflexion, directly preventing Arwel’s right toe scuffing.',
     techniqueCues: [
@@ -434,9 +434,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '15-20 controlled reps (3s tempo)',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=kYJv8y3H32k',
-    videoEmbedId: 'kYJv8y3H32k',
-    videoChannel: 'Knees Over Toes Guy / ATG Protocol',
+    videoUrl: 'https://www.youtube.com/watch?v=pQcvW08rnAk',
+    videoEmbedId: 'pQcvW08rnAk',
+    videoChannel: 'ATG / Knees Over Toes Guy',
     rationale:
       'Strengthens the tibialis anterior muscle responsible for pulling the forefoot up during the swing phase, eradicating toe drag and ground scuffing.',
     techniqueCues: [
@@ -466,9 +466,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 4,
     defaultReps: '5 reps of 15-20s holds at 60% effort',
     frequency: '4x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=FjC3P2pA57w',
-    videoEmbedId: 'FjC3P2pA57w',
-    videoChannel: 'E3 Rehab / GTPS Clinical Protocol',
+    videoUrl: 'https://www.youtube.com/watch?v=1xPUiHBZV2E',
+    videoEmbedId: '1xPUiHBZV2E',
+    videoChannel: 'MedBridge / Physical Therapy',
     rationale:
       'Evidence-based first-line treatment for gluteal tendinopathy. Delivers an analgesic effect to the gluteus medius/minimus without tendon compression over the trochanter.',
     techniqueCues: [
@@ -497,9 +497,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '12-15 slow reps per side',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=q6t8rW8WbQc',
-    videoEmbedId: 'q6t8rW8WbQc',
-    videoChannel: 'Bob & Brad Physical Therapists / GTPS',
+    videoUrl: 'https://www.youtube.com/watch?v=aQVApsdOLSI',
+    videoEmbedId: 'aQVApsdOLSI',
+    videoChannel: 'Physical Therapy Clinical Rehab',
     rationale:
       'Traditional clamshells allow the knee to cross into adduction at the bottom, squashing the glute tendon. Using a spacer block keeps the hip in neutral, loading the gluteus medius cleanly.',
     techniqueCues: [
@@ -527,9 +527,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '12 steps left, 12 steps right',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=2T3T3h2Hn6k',
-    videoEmbedId: '2T3T3h2Hn6k',
-    videoChannel: 'Squat University / Runner Biomechanics',
+    videoUrl: 'https://www.youtube.com/watch?v=ESmDtnFmK0o',
+    videoEmbedId: 'ESmDtnFmK0o',
+    videoChannel: 'Physical Therapy Exercises',
     rationale:
       'Placing the band at mid-shin or above the knees avoids ankle eversion strain while maximizing gluteus medius and tensor balance, preventing dynamic valgus and pelvic dip.',
     techniqueCues: [
@@ -559,9 +559,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '8-10 reps (3s up, 2s pause, 3s down) every other day',
     frequency: '3x weekly (Alternate days)',
-    videoUrl: 'https://www.youtube.com/watch?v=gT83U4nI_mY',
-    videoEmbedId: 'gT83U4nI_mY',
-    videoChannel: 'Dr. Michael Rathleff / British Journal of Sports Medicine / E3 Rehab',
+    videoUrl: 'https://www.youtube.com/watch?v=p8k8xTui7q4',
+    videoEmbedId: 'p8k8xTui7q4',
+    videoChannel: 'Dr. Michael Rathleff / BJSM Protocol',
     rationale:
       'The premier clinical trial protocol for plantar fasciitis. Elevating the big toe with a rolled towel pre-tensions the plantar fascia via the Windlass mechanism, stimulating collagen alignment and tensile recovery under controlled load.',
     techniqueCues: [
@@ -590,9 +590,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '15-20 reps with 2s pause at top',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=QcM5wK7E4w4',
-    videoEmbedId: 'QcM5wK7E4w4',
-    videoChannel: 'Physiotutors / Soleus Rehab',
+    videoUrl: 'https://www.youtube.com/watch?v=ar8nav0jGoE',
+    videoEmbedId: 'ar8nav0jGoE',
+    videoChannel: 'Physical Therapy / Soleus Rehab',
     rationale:
       'The soleus absorbs up to 6.5-8 times body weight during marathon running. Bending the knee to 90° slacks the gastrocnemius, isolating soleus endurance to protect the plantar fascia from shock.',
     techniqueCues: [
@@ -620,9 +620,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '10 reps of 5s holds per foot',
     frequency: 'Daily (Morning Routine)',
-    videoUrl: 'https://www.youtube.com/watch?v=7_hE3H65f8M',
-    videoEmbedId: '7_hE3H65f8M',
-    videoChannel: 'Squat University / Dr. Emily Splichal',
+    videoUrl: 'https://www.youtube.com/watch?v=7EQ_9LfUYcM',
+    videoEmbedId: '7EQ_9LfUYcM',
+    videoChannel: 'Orthopaedic Associates of Wisconsin',
     rationale:
       'Strengthens the abductor hallucis and flexor digitorum brevis, building an active muscular arch that unloads passive strain from the plantar fascia during every foot strike.',
     techniqueCues: [
@@ -652,9 +652,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '15 slow reps per leg',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=kYjO60-aRjU',
-    videoEmbedId: 'kYjO60-aRjU',
-    videoChannel: 'Bob & Brad Physical Therapy / Knee OA Guide',
+    videoUrl: 'https://www.youtube.com/watch?v=CU7Fn11YMTw',
+    videoEmbedId: 'CU7Fn11YMTw',
+    videoChannel: 'Physical Therapy Treatment Tips',
     rationale:
       'Strengthens the terminal 30 degrees of quadriceps extension and VMO without the compressive patellofemoral shear of seated leg extensions, lubricating arthritic knee cartilage.',
     techniqueCues: [
@@ -683,9 +683,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '45s isometric hold at 60° knee bend',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=0k73R17o4uM',
-    videoEmbedId: '0k73R17o4uM',
-    videoChannel: 'E3 Rehab / Patellar Tendon Protocol',
+    videoUrl: 'https://www.youtube.com/watch?v=1CJ3hteGxo4',
+    videoEmbedId: '1CJ3hteGxo4',
+    videoChannel: 'E3 Rehab - Spanish Squat Technique',
     rationale:
       'By placing the strap behind the popliteal crease, vertical shin angles are maintained, dramatically reducing patellofemoral shear stress while delivering high quadriceps stimulus to support Arwel’s arthritic knee.',
     techniqueCues: [
@@ -716,9 +716,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '12-15 reps with 2s hold',
     frequency: '3x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=foB09vWw_kU',
-    videoEmbedId: 'foB09vWw_kU',
-    videoChannel: 'Precision Movement / Ergonomic Shoulder Rehab',
+    videoUrl: 'https://www.youtube.com/watch?v=osRimvxXlKQ',
+    videoEmbedId: 'osRimvxXlKQ',
+    videoChannel: 'Movement Parallels Life / Functional Shoulder',
     rationale:
       'Restores thoracic spine extension and postural stamina for running without gripping dumbbells or stressing arthritic thumbs, fingers, and wrists.',
     techniqueCues: [
@@ -746,9 +746,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 2,
     defaultReps: '5 cycles of 4 hand postures (Straight, Hook, Flat Fist, Full Fist)',
     frequency: 'Daily (Morning or Evening)',
-    videoUrl: 'https://www.youtube.com/watch?v=i9YQ_C8pI6E',
-    videoEmbedId: 'i9YQ_C8pI6E',
-    videoChannel: 'Hand Therapy Secrets / Orthopedic Physical Therapy',
+    videoUrl: 'https://www.youtube.com/watch?v=EZfceM-1x5Q',
+    videoEmbedId: 'EZfceM-1x5Q',
+    videoChannel: 'Ask Doctor Jo / Hand & Finger Exercises',
     rationale:
       'Promotes synovial fluid circulation, unglues flexor tendons, and reduces morning thumb and finger stiffness triggered by perimenopausal hormonal shifts.',
     techniqueCues: [
@@ -779,9 +779,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 3,
     defaultReps: '30s hold per side (3 deep breath cycles)',
     frequency: 'Daily',
-    videoUrl: 'https://www.youtube.com/watch?v=F3_6Qz22jbg',
-    videoEmbedId: 'F3_6Qz22jbg',
-    videoChannel: 'Squat University / Physical Therapy',
+    videoUrl: 'https://www.youtube.com/watch?v=SDsjnuCf90U',
+    videoEmbedId: 'SDsjnuCf90U',
+    videoChannel: 'Squat University / Pelvic Tilt Hip Stretch',
     rationale:
       'Traditional hip flexor stretches hyperextend the lumbar spine, aggravating Arwel’s facet joints. By actively posterior tilting (tucking the tailbone under) and squeezing the glute, the psoas and rectus femoris are lengthened without spinal compression.',
     techniqueCues: [
@@ -810,9 +810,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 2,
     defaultReps: '8 slow segmental waves (5s each)',
     frequency: 'Daily (Morning Routine)',
-    videoUrl: 'https://www.youtube.com/watch?v=W_qXGsh9Ufg',
-    videoEmbedId: 'W_qXGsh9Ufg',
-    videoChannel: 'Physiotutors / Spinal Mobility',
+    videoUrl: 'https://www.youtube.com/watch?v=FyCuSE3mDcc',
+    videoEmbedId: 'FyCuSE3mDcc',
+    videoChannel: 'Physiotutors / Segmental Spine Mobility',
     rationale:
       'Gentle passive spinal motion restores intervertebral disc hydration and relieves facet capsule constriction. Emphasizes segmental control through the thoracic and lumbar spine.',
     techniqueCues: [
@@ -840,9 +840,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     defaultSets: 2,
     defaultReps: '60-90s per side with deep breathing',
     frequency: '4x weekly',
-    videoUrl: 'https://www.youtube.com/watch?v=17X2_L8_y4s',
-    videoEmbedId: '17X2_L8_y4s',
-    videoChannel: 'Kelly Starrett / The Ready State',
+    videoUrl: 'https://www.youtube.com/watch?v=wPzwoG1WVgg',
+    videoEmbedId: 'wPzwoG1WVgg',
+    videoChannel: 'The Ready State / IT Band & TFL Mobility',
     rationale:
       'Rolling directly on the thick fibrous IT band tendon causes intense pain with zero tissue lengthening. Rolling the muscular anchor—the Tensor Fasciae Latae (TFL) and Gluteus Maximus—reduces tensile pull along the IT band.',
     techniqueCues: [
